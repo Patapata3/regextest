@@ -8,6 +8,7 @@ import org.unibayreuth.regextest.compilers.utils.StackConfig;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class NFARegexCompiler implements RegexCompiler<NFAutomaton>{
     private Map<Character, Function<StackConfig, StackConfig>> infixOperations = new HashMap<>(Map.of(
@@ -32,6 +33,8 @@ public class NFARegexCompiler implements RegexCompiler<NFAutomaton>{
         boolean isEscape = false;
         boolean isConcat = false;
         int bracketsCount = 0;
+        boolean isCounter = false;
+        StringBuilder counterString = new StringBuilder();
 
         for (char c : regex.toCharArray()) {
             if (c == '\\' && !isEscape) {
@@ -39,10 +42,10 @@ public class NFARegexCompiler implements RegexCompiler<NFAutomaton>{
                 continue;
             }
 
-            if (!isEscape && (c == '|')) {
+            if (!isEscape && !isCounter && (c == '|')) {
                 stackConfig.pushOp(c);
                 isConcat = false;
-            } else if (!isEscape && (c == '(')) {
+            } else if (!isEscape && !isCounter && (c == '(')) {
                 if (isConcat) {
                     stackConfig.pushOp('.');
                 }
@@ -50,13 +53,23 @@ public class NFARegexCompiler implements RegexCompiler<NFAutomaton>{
                 stackConfig.pushOp(c);
                 isConcat = false;
                 bracketsCount++;
-            } else if (!isEscape && postfixOperations.containsKey(c)) {
+            } else if (!isEscape && !isCounter && postfixOperations.containsKey(c)) {
                 stackConfig.pushNfa(postfixOperations.get(c).apply(stackConfig.popNfa()));
-            } else if (! isEscape && c == ')') {
+            } else if (!isEscape && !isCounter && c == ')') {
                 stackConfig = calculateBrackets(stackConfig, bracketsCount);
                 bracketsCount--;
                 stackConfig.popOp();
-            } else {
+            } else if (!isEscape && c == '{') {
+                isCounter = true;
+            } else if (isCounter && c == '}') {
+                stackConfig.pushNfa(handleCounter(stackConfig.popNfa(), counterString.toString()));
+                counterString.setLength(0);
+                isCounter = false;
+            }
+            else if (isCounter) {
+                counterString.append(c);
+            }
+            else {
                 stackConfig.pushNfa(createAtomicNfa(c));
                 if (isConcat) {
                     stackConfig.pushOp('.');
@@ -114,7 +127,7 @@ public class NFARegexCompiler implements RegexCompiler<NFAutomaton>{
     }
 
     private NFAWrapper concat(NFAWrapper nfa1, NFAWrapper nfa2) {
-        nfa1.getFinish().setTransMap(nfa2.getStart().getAllTransitions());
+        nfa1.getFinish().setTransMap(new HashMap<>(nfa2.getStart().getAllTransitions()));
         return new NFAWrapper(nfa1.getStart(), nfa2.getFinish());
     }
 
@@ -133,7 +146,7 @@ public class NFARegexCompiler implements RegexCompiler<NFAutomaton>{
 
             nfa1 = concat(concatStack.pop(), concatStack.pop());
             while (!concatStack.empty()) {
-                concat(nfa1, concatStack.pop());
+                nfa1 = concat(nfa1, concatStack.pop());
             }
         } else {
             nfa1 = newConfig.popNfa();
@@ -172,4 +185,48 @@ public class NFARegexCompiler implements RegexCompiler<NFAutomaton>{
         return nfa;
     }
 
+    private NFAWrapper handleCounter(NFAWrapper topNfa, String counterString) {
+        String[] counterBorders = counterString.split(",");
+        if (counterBorders.length < 1 || counterBorders.length > 2) {
+            throw new IllegalArgumentException("Invalid regex: too many or to few counter parameters");
+        }
+        int minCounter, maxCounter;
+        try {
+            minCounter = Integer.parseInt(counterBorders[0].trim());
+            maxCounter = counterBorders.length == 2 ? Integer.parseInt(counterBorders[1].trim()) : minCounter;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid regex: incorrect format of the counter", e);
+        }
+
+        if (maxCounter < minCounter) {
+            throw new IllegalArgumentException("Invalid regex: max counter value exceeds min counter value");
+        }
+        if (maxCounter == 0) {
+            throw new IllegalArgumentException("Invalid regex: max counter value must be bigger than zero");
+        }
+
+        NFAWrapper newNfa = copyNFA(topNfa);
+        for (int i = 1; i < maxCounter; i++) {
+            newNfa = i < minCounter ? concat(newNfa, copyNFA(topNfa)) : concat(newNfa, optional(copyNFA(topNfa)));
+        }
+        return newNfa;
+    }
+
+    private NFAWrapper copyNFA(NFAWrapper original) {
+        Map<Integer, NFAState> copiesMap = new HashMap<>();
+        NFAState newStart = copyState(original.getStart(), copiesMap);
+        return new NFAWrapper(newStart, copiesMap.get(original.getFinish().hashCode()));
+    }
+
+    private NFAState copyState(NFAState original, Map<Integer, NFAState> copiesMap) {
+        NFAState copy = new NFAState();
+        copiesMap.put(original.hashCode(), copy);
+        original.getAllTransitions().forEach((sym, states) -> {
+            Set<NFAState> newTransition = states.stream()
+                    .map(state -> copiesMap.containsKey(state.hashCode()) ? copiesMap.get(state.hashCode()) : copyState(state, copiesMap))
+                    .collect(Collectors.toSet());
+            copy.addTransitions(sym, newTransition);
+        });
+        return copy;
+    }
 }
