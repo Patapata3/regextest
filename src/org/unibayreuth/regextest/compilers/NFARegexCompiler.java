@@ -1,10 +1,13 @@
 package org.unibayreuth.regextest.compilers;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.unibayreuth.regextest.automata.NFAutomaton;
 import org.unibayreuth.regextest.automata.states.NFAState;
-import org.unibayreuth.regextest.compilers.utils.NFAWrapper;
-import org.unibayreuth.regextest.compilers.utils.StackConfig;
+import org.unibayreuth.regextest.compilers.utils.CompileUtils;
+import org.unibayreuth.regextest.compilers.utils.Counter;
+import org.unibayreuth.regextest.compilers.utils.nfa.NFAWrapper;
+import org.unibayreuth.regextest.compilers.utils.nfa.StackConfig;
 
 import java.util.*;
 import java.util.function.Function;
@@ -29,6 +32,9 @@ public class NFARegexCompiler implements RegexCompiler<NFAutomaton>{
 
     @Override
     public NFAutomaton compile(String regex) {
+        Preconditions.checkNotNull(regex, "Regex cannot be null!");
+        Preconditions.checkArgument(!regex.isEmpty(), "Regex cannot be empty!");
+
         StackConfig stackConfig = new StackConfig();
         boolean isEscape = false;
         boolean isConcat = false;
@@ -186,25 +192,10 @@ public class NFARegexCompiler implements RegexCompiler<NFAutomaton>{
     }
 
     private NFAWrapper handleCounter(NFAWrapper topNfa, String counterString) {
-        String[] counterBorders = counterString.split(",");
-        if (counterBorders.length < 1 || counterBorders.length > 2) {
-            throw new IllegalArgumentException("Invalid regex: too many or to few counter parameters");
-        }
-        int minCounter, maxCounter;
-        try {
-            minCounter = Integer.parseInt(counterBorders[0].trim());
-            maxCounter = counterBorders.length == 2 ? Integer.parseInt(counterBorders[1].trim()) : minCounter;
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid regex: incorrect format of the counter", e);
-        }
+        Counter counter = CompileUtils.parseCounter(counterString);
 
-        if (maxCounter < minCounter) {
-            throw new IllegalArgumentException("Invalid regex: max counter value exceeds min counter value");
-        }
-        if (maxCounter == 0) {
-            throw new IllegalArgumentException("Invalid regex: max counter value must be bigger than zero");
-        }
-
+        int minCounter = counter.getMin();
+        int maxCounter = counter.getMax();
         NFAWrapper newNfa = copyNFA(topNfa);
         for (int i = 1; i < maxCounter; i++) {
             newNfa = i < minCounter ? concat(newNfa, copyNFA(topNfa)) : concat(newNfa, optional(copyNFA(topNfa)));

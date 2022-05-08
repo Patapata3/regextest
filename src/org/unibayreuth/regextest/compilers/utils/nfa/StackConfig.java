@@ -1,4 +1,4 @@
-package org.unibayreuth.regextest.compilers.utils;
+package org.unibayreuth.regextest.compilers.utils.nfa;
 
 import java.util.Stack;
 
