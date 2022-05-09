@@ -31,7 +31,7 @@ public class PartialDerivation {
         if (operations.isEmpty() || other.getOperations().isEmpty()) {
             List<RegexElement> newRemainder = new ArrayList<>(remainder);
             newRemainder.addAll(other.getRemainder());
-            return new PartialDerivation(operations == null ? other.getOperations() : operations, newRemainder);
+            return new PartialDerivation(operations.isEmpty() ? other.getOperations() : operations, newRemainder);
         }
 
         Map<NCFACounter, NCFAOperation> otherOperationsMap = other.getOperations()

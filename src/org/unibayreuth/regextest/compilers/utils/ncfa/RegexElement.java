@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RegexElement {
-    private RegexElementType type;
+    private RegexElementType type = RegexElementType.DEFAULT;
     private String regex = "";
     private List<RegexElement> children = new ArrayList<>();
     private List<RegexElement> alternatives = new ArrayList<>();
@@ -102,8 +102,8 @@ public class RegexElement {
     public boolean isNullable() {
         return regex.isEmpty() || Sets.newHashSet(RegexElementType.OPTIONAL, RegexElementType.STAR).contains(type)
                 || (type == RegexElementType.COUNTER && minCounter == 0)
-                || children.stream().allMatch(RegexElement::isNullable)
-                || alternatives.stream().allMatch(RegexElement::isNullable);
+                || (type != RegexElementType.SINGLETON && children.stream().allMatch(RegexElement::isNullable))
+                || (!alternatives.isEmpty() && alternatives.stream().allMatch(RegexElement::isNullable));
     }
 
     public void addSymbol(char c) {

@@ -16,10 +16,6 @@ public class NCFAState {
         this.regexDerivative = regexDerivative;
     }
 
-    public Map<Character, Set<NCFATransition>> getTransMap() {
-        return transMap;
-    }
-
     public void setTransMap(Map<Character, Set<NCFATransition>> transMap) {
         this.transMap = transMap;
     }
@@ -30,5 +26,13 @@ public class NCFAState {
 
     public void setAcceptConditions(Set<NCFAOperation> acceptConditions) {
         this.acceptConditions = acceptConditions;
+    }
+
+    public boolean hasTransitions(char c) {
+        return transMap.containsKey(c);
+    }
+
+    public Set<NCFATransition> getTransitions(char c) {
+        return transMap.get(c);
     }
 }

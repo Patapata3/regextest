@@ -46,6 +46,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
         elementStack.push(root);
         boolean isEscape = false;
         boolean isCounter = false;
+        int bracketsCount = 0;
         StringBuilder counterString = new StringBuilder();
 
         for (char c : regex.toCharArray()) {
@@ -73,10 +74,17 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
                         RegexElement child = new RegexElement();
                         elementStack.push(child);
                         elementStack.peek().addSymbol(c);
+                        bracketsCount++;
                         break;
                     case ')':
+                        if (bracketsCount == 0) {
+                            throw new IllegalArgumentException("Invalid regex: too many closing brackets");
+                        }
+                        RegexElement newChild = elementStack.pop();
+                        elementStack.peek().addChild(newChild);
                         elementStack.peek().setReady(true);
                         elementStack.peek().addSymbol(c);
+                        bracketsCount--;
                         break;
                     case '*':
                     case '+':
@@ -102,6 +110,12 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
                 alphabet.add(c);
             }
         }
+
+        if (bracketsCount != 0) {
+            throw new IllegalArgumentException("Invalid regex: too many opening brackets");
+        }
+        RegexElement lastChild = elementStack.pop();
+        root.addChild(lastChild);
         return new RegexTree(root, alphabet);
     }
 
@@ -133,7 +147,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
             elementStack.peek().setMaxCounter(counter.getMax());
 
             String regex = elementStack.peek().getRegex();
-            regex = regex.substring(0, regex.length() - 2) + String.format("{%d;%d}", 0, counter.getMax());
+            regex = regex.substring(0, regex.length() - 1) + String.format("{%d;%d}", 0, counter.getMax());
             elementStack.peek().setRegex(regex);
             return;
         }
@@ -155,7 +169,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
         stateMap.put(root.getRegex(), startState);
         startState.setAcceptConditions(calculateAcceptConditions(root.getChildren()));
         Map<String, NCFACounter> counterMap = new HashMap<>();
-        startState.setTransMap(calculateTransitions(root.getChildren(), tree.getAlphabet(), stateMap, new HashMap<>(), counterMap));
+        startState.setTransMap(calculateTransitions(Collections.singletonList(root), tree.getAlphabet(), stateMap, new HashMap<>(), counterMap));
         return new NCFAutomaton(startState, new HashSet<>(counterMap.values()));
     }
 
@@ -211,8 +225,8 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
         }
 
         RegexElement leadingElement = elementSequence.get(0);
-        List<RegexElement> sequenceTail = elementSequence.subList(1, elementSequence.size() - 1);
-        Set<PartialDerivation> derivations = new HashSet<>();
+        List<RegexElement> sequenceTail = elementSequence.size() > 1 ? elementSequence.subList(1, elementSequence.size()) : new ArrayList<>();
+        Set<PartialDerivation> derivations;
         switch (leadingElement.getType()) {
             case SINGLETON:
                 derivations = String.valueOf(c).equals(leadingElement.getRegex()) ?
@@ -228,6 +242,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
                 RegexElement starElement = new RegexElement();
                 starElement.setType(RegexElementType.STAR);
                 starElement.setChildren(leadingElement.getChildren());
+                starElement.setRegex(leadingElement.getRegex().substring(0, leadingElement.getRegex().length() - 1) + "*");
 
                 List<RegexElement> plusSequence = new ArrayList<>(leadingElement.getChildren());
                 plusSequence.add(starElement);
@@ -237,10 +252,11 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
             case COUNTER:
                 NCFACounter counter = ofNullable(counterMap.get(leadingElement.getRegex()))
                         .orElse(new NCFACounter(leadingElement.getRegex(), leadingElement.getMinCounter(), leadingElement.getMaxCounter()));
+                counterMap.put(leadingElement.getRegex(), counter);
 
                 Set<PartialDerivation> incrDerivations = composeDerivations(calculateDerivation(c, leadingElement.getChildren(), derivationCache, counterMap),
                         Collections.singleton(new PartialDerivation(Collections.singleton(new NCFAOperation(NCFAOpType.INCREMENT, counter)), elementSequence)));
-                Set<PartialDerivation> exitDerivations = composeDerivations(Collections.singleton(new PartialDerivation(Collections.singleton(new NCFAOperation(NCFAOpType.INCREMENT, counter)), new ArrayList<>())),
+                Set<PartialDerivation> exitDerivations = composeDerivations(Collections.singleton(new PartialDerivation(Collections.singleton(new NCFAOperation(NCFAOpType.EXIT, counter)), new ArrayList<>())),
                         calculateDerivation(c, sequenceTail, derivationCache, counterMap));
 
                 derivations = Sets.union(incrDerivations, exitDerivations);

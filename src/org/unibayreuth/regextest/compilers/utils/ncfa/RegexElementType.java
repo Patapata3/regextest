@@ -5,5 +5,6 @@ public enum RegexElementType {
     STAR,
     OPTIONAL,
     COUNTER,
-    PLUS
+    PLUS,
+    DEFAULT
 }
