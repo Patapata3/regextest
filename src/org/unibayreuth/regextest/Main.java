@@ -5,7 +5,6 @@ import org.unibayreuth.regextest.automata.NFAutomaton;
 import org.unibayreuth.regextest.compilers.NCFARegexCompiler;
 import org.unibayreuth.regextest.compilers.NFARegexCompiler;
 
-import java.io.Console;
 import java.util.Scanner;
 
 public class Main {

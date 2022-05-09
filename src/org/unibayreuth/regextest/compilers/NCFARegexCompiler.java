@@ -101,6 +101,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
                 }
             } else if (isCounter && c == '}') {
                 handleCounter(elementStack, counterString.toString());
+                counterString.setLength(0);
                 isCounter = false;
             } else if (isCounter) {
                 counterString.append(c);
@@ -182,8 +183,11 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
             if (element.getType() != RegexElementType.COUNTER) {
                 return null;
             }
-            acceptConditions.add(new NCFAOperation(NCFAOpType.EXIT,
-                    new NCFACounter(element.getRegex(), element.getMinCounter(), element.getMaxCounter())));
+            NCFAOperation newCondition = new NCFAOperation(NCFAOpType.EXIT,
+                    new NCFACounter(element.getRegex(), element.getMinCounter(), element.getMaxCounter()));
+            if (!acceptConditions.add(newCondition)) {
+                return null;
+            }
         }
         return acceptConditions;
     }
