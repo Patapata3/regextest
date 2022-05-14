@@ -54,7 +54,7 @@ public class NCFAutomaton implements NondeterministicAutomaton<CSAutomaton> {
             }
         }
 
-        return null;
+        return new CSAutomaton(start);
     }
 
     private Map<CFACounter, Set<NCFAState>> calculateScope() {
@@ -119,42 +119,76 @@ public class NCFAutomaton implements NondeterministicAutomaton<CSAutomaton> {
                     .flatMap(ncfaState -> ncfaState.getTransitions(c).stream()
                             .map(transition -> new SourceTransition(ncfaState, transition)))
                     .collect(Collectors.toSet());
+            if (transitions.isEmpty()) {
+                continue;
+            }
 
             Set<CFACounter> relevantCounters = transitions.stream()
                     .flatMap(transition -> transition.getOperationMap().keySet().stream())
                     .collect(Collectors.toSet());
 
             if (relevantCounters.isEmpty()) {
-                Set<NCFAState> powerSet = transitions.stream()
-                        .map(NCFATransition::getTargetState)
-                        .collect(Collectors.toSet());
-                CSAState target;
-                if (!foundStates.containsKey(powerSet)) {
-                    target = new CSAState(powerSet);
-                    newStates.add(target);
-                } else {
-                    target = foundStates.get(powerSet);
+                CSATransition csaTransition = calculateTransition(transitions, new HashSet<>(), scopeMap, foundStates);
+                if (!foundStates.containsKey(csaTransition.getTarget().getPowerSet())) {
+                    foundStates.put(csaTransition.getTarget().getPowerSet(), csaTransition.getTarget());
+                    newStates.add(csaTransition.getTarget());
                 }
-
-                CSATransition csaTransition = new CSATransition(target, new HashSet<>(), new HashSet<>());
                 source.addTransition(c, csaTransition);
                 continue;
             }
 
-            Set<SourceTransition> baseTransitions = transitions.stream()
+            Set<SourceTransition> commonTransitions = transitions.stream()
                     .filter(transition -> transition.getOperations().isEmpty())
                     .collect(Collectors.toSet());
 
-            transitions.removeAll(baseTransitions);
+            transitions.removeAll(commonTransitions);
 
             List<CSAGuard> guardList = relevantCounters.stream()
                     .map(counter -> new CSAGuard(counter, false, true))
                     .collect(Collectors.toList());
 
             for (int i = 0; i < Math.pow(3, relevantCounters.size()); i++) {
+                Set<NCFAOperation> availableOperations = guardList.stream()
+                        .flatMap(guard -> convertGuard(guard).stream())
+                        .collect(Collectors.toSet());
+                Set<SourceTransition> workingTransitions = transitions.stream()
+                        .filter(transition -> transition.getOperations()
+                                .stream()
+                                .allMatch(operation -> !scopeMap.get(operation.getCounter()).contains(transition.getSource()) ||
+                                        availableOperations.contains(operation)))
+                        .collect(Collectors.toSet());
 
+                workingTransitions.addAll(commonTransitions);
+                if (!workingTransitions.isEmpty()) {
+                    CSATransition csaTransition = calculateTransition(workingTransitions, new HashSet<>(guardList), scopeMap, foundStates);
+                    if (!foundStates.containsKey(csaTransition.getTarget().getPowerSet())) {
+                        foundStates.put(csaTransition.getTarget().getPowerSet(), csaTransition.getTarget());
+                        newStates.add(csaTransition.getTarget());
+                    }
+                    source.addTransition(c, csaTransition);
+                }
+
+                incrementGuards(guardList);
             }
         }
+
+        return newStates;
+    }
+
+    private CSATransition calculateTransition(Set<SourceTransition> workingTransitions, Set<CSAGuard> guards, Map<CFACounter, Set<NCFAState>> scopeMap, Map<Set<NCFAState>, CSAState> foundStates) {
+        Set<NCFAState> powerSet = workingTransitions.stream()
+                .map(NCFATransition::getTargetState)
+                .collect(Collectors.toSet());
+
+        CSAState target;
+        if (!foundStates.containsKey(powerSet)) {
+            target = new CSAState(powerSet);
+        } else {
+            target = foundStates.get(powerSet);
+        }
+
+        return new CSATransition(target, guards, calculateOperations(scopeMap, workingTransitions));
+
     }
 
     private Set<CSAOperation> calculateOperations(Map<CFACounter, Set<NCFAState>> scopeMap, Set<SourceTransition> transitions) {
@@ -165,7 +199,9 @@ public class NCFAutomaton implements NondeterministicAutomaton<CSAutomaton> {
                     .filter(sourceTransition -> scopeMap.get(counter).contains(sourceTransition.getTargetState()))
                     .map(sourceTransition -> getOperation(counter, sourceTransition, scopeMap.get(counter)))
                     .collect(Collectors.toSet());
-            operations.add(new CSAOperation(counter, counterOperations));
+            if (!counterOperations.isEmpty()) {
+                operations.add(new CSAOperation(counter, counterOperations));
+            }
         }
         return operations;
     }
@@ -207,5 +243,17 @@ public class NCFAutomaton implements NondeterministicAutomaton<CSAutomaton> {
             return new CSAGuard(guard.getCounter(), true, false);
         }
         return new CSAGuard(guard.getCounter(), false, true);
+    }
+
+    private Set<NCFAOperation> convertGuard(CSAGuard guard) {
+        Set<NCFAOperation> availableOperations = new HashSet<>();
+        if (guard.isIncrement()) {
+            availableOperations.add(new NCFAOperation(NCFAOpType.INCREMENT, guard.getCounter()));
+        }
+        if (guard.isExit()) {
+            availableOperations.add(new NCFAOperation(NCFAOpType.EXIT, guard.getCounter()));
+            availableOperations.add(new NCFAOperation(NCFAOpType.EXIT1, guard.getCounter()));
+        }
+        return availableOperations;
     }
 }
