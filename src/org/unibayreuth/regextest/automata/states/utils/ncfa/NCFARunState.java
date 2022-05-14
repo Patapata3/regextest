@@ -1,4 +1,4 @@
-package org.unibayreuth.regextest.automata.states.utils;
+package org.unibayreuth.regextest.automata.states.utils.ncfa;
 
 import org.unibayreuth.regextest.automata.states.NCFAState;
 
@@ -8,15 +8,15 @@ import java.util.stream.Collectors;
 
 public class NCFARunState {
     private NCFAState state;
-    private Map<NCFACounter, Integer> counterValues;
+    private Map<CFACounter, Integer> counterValues;
 
-    private Map<NCFAOpType, Consumer<NCFACounter>> opMap = Map.of(
+    private Map<NCFAOpType, Consumer<CFACounter>> opMap = Map.of(
             NCFAOpType.INCREMENT, this::increment,
             NCFAOpType.EXIT, this::exit,
             NCFAOpType.EXIT1, this::exit1
     );
 
-    public NCFARunState(NCFAState state, Map<NCFACounter, Integer> counterValues) {
+    public NCFARunState(NCFAState state, Map<CFACounter, Integer> counterValues) {
         this.state = state;
         this.counterValues = counterValues;
     }
@@ -59,20 +59,20 @@ public class NCFARunState {
         operations.forEach(operation -> opMap.get(operation.getOperation()).accept(operation.getCounter()));
     }
 
-    private void increment(NCFACounter counter) {
+    private void increment(CFACounter counter) {
         counterValues.put(counter, counterValues.get(counter) + 1);
     }
 
-    private void exit(NCFACounter counter) {
+    private void exit(CFACounter counter) {
         counterValues.put(counter, 0);
     }
 
-    private void exit1(NCFACounter counter) {
+    private void exit1(CFACounter counter) {
         counterValues.put(counter, 1);
     }
 
-    private Set<NCFAOperation> getCounterState(Map.Entry<NCFACounter, Integer> counterValue) {
-        NCFACounter counter = counterValue.getKey();
+    private Set<NCFAOperation> getCounterState(Map.Entry<CFACounter, Integer> counterValue) {
+        CFACounter counter = counterValue.getKey();
         int value = counterValue.getValue();
 
         Set<NCFAOperation> availableOperations = new HashSet<>();

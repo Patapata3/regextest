@@ -1,12 +1,12 @@
-package org.unibayreuth.regextest.automata.states.utils;
+package org.unibayreuth.regextest.automata.states.utils.ncfa;
 
 import java.util.Objects;
 
 public class NCFAOperation {
     private final NCFAOpType operation;
-    private final NCFACounter counter;
+    private final CFACounter counter;
 
-    public NCFAOperation(NCFAOpType operation, NCFACounter counter) {
+    public NCFAOperation(NCFAOpType operation, CFACounter counter) {
         this.operation = operation;
         this.counter = counter;
     }
@@ -29,7 +29,7 @@ public class NCFAOperation {
         return operation;
     }
 
-    public NCFACounter getCounter() {
+    public CFACounter getCounter() {
         return counter;
     }
 }

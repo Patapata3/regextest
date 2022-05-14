@@ -1,4 +1,4 @@
-package org.unibayreuth.regextest.automata.states.utils;
+package org.unibayreuth.regextest.automata.states.utils.ncfa;
 
 public enum NCFAOpType {
     INCREMENT,

@@ -4,13 +4,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.unibayreuth.regextest.automata.nondeterministic.NCFAutomaton;
 import org.unibayreuth.regextest.automata.states.NCFAState;
-import org.unibayreuth.regextest.automata.states.utils.NCFACounter;
-import org.unibayreuth.regextest.automata.states.utils.NCFAOpType;
-import org.unibayreuth.regextest.automata.states.utils.NCFAOperation;
-import org.unibayreuth.regextest.automata.states.utils.NCFATransition;
+import org.unibayreuth.regextest.automata.states.utils.ncfa.CFACounter;
+import org.unibayreuth.regextest.automata.states.utils.ncfa.NCFAOpType;
+import org.unibayreuth.regextest.automata.states.utils.ncfa.NCFAOperation;
+import org.unibayreuth.regextest.automata.states.utils.ncfa.NCFATransition;
 import org.unibayreuth.regextest.compilers.utils.CollectionUtils;
 import org.unibayreuth.regextest.compilers.utils.CompileUtils;
-import org.unibayreuth.regextest.compilers.utils.Counter;
 import org.unibayreuth.regextest.compilers.utils.ncfa.PartialDerivation;
 import org.unibayreuth.regextest.compilers.utils.ncfa.RegexElement;
 import org.unibayreuth.regextest.compilers.utils.ncfa.RegexElementType;
@@ -141,7 +140,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
             return;
         }
 
-        Counter counter = CompileUtils.parseCounter(counterString);
+        org.unibayreuth.regextest.compilers.utils.Counter counter = CompileUtils.parseCounter(counterString);
         if (elementStack.peek().getType() == RegexElementType.OPTIONAL) {
             elementStack.peek().setType(RegexElementType.COUNTER);
             elementStack.peek().setMinCounter(0);
@@ -169,7 +168,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
         NCFAState startState = new NCFAState(root.getRegex());
         stateMap.put(root.getRegex(), startState);
         startState.setAcceptConditions(calculateAcceptConditions(root.getChildren()));
-        Map<String, NCFACounter> counterMap = new HashMap<>();
+        Map<String, CFACounter> counterMap = new HashMap<>();
         startState.setTransMap(calculateTransitions(Collections.singletonList(root), tree.getAlphabet(), stateMap, new HashMap<>(), counterMap));
         return new NCFAutomaton(startState, new HashSet<>(counterMap.values()));
     }
@@ -184,7 +183,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
                 return null;
             }
             NCFAOperation newCondition = new NCFAOperation(NCFAOpType.EXIT,
-                    new NCFACounter(element.getRegex(), element.getMinCounter(), element.getMaxCounter()));
+                    new CFACounter(element.getRegex(), element.getMinCounter(), element.getMaxCounter()));
             if (!acceptConditions.add(newCondition)) {
                 return null;
             }
@@ -195,7 +194,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
     private Map<Character, Set<NCFATransition>> calculateTransitions(List<RegexElement> elementSequence, Set<Character> alphabet,
                                                                      Map<String, NCFAState> stateMap,
                                                                      Map<String, Set<PartialDerivation>> derivationCache,
-                                                                     Map<String, NCFACounter> counterMap) {
+                                                                     Map<String, CFACounter> counterMap) {
         Map<Character, Set<NCFATransition>> transMap = new HashMap<>();
         for (char c : alphabet) {
             Set<PartialDerivation> derivations = calculateDerivation(c, elementSequence, derivationCache, counterMap);
@@ -219,7 +218,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
     }
 
     private Set<PartialDerivation> calculateDerivation(char c, List<RegexElement> elementSequence, Map<String, Set<PartialDerivation>> derivationCache,
-                                                       Map<String, NCFACounter> counterMap) {
+                                                       Map<String, CFACounter> counterMap) {
         if (elementSequence == null || elementSequence.isEmpty()) {
             return new HashSet<>();
         }
@@ -254,8 +253,8 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
                 derivations = calculateDerivation(c, plusSequence, derivationCache, counterMap);
                 break;
             case COUNTER:
-                NCFACounter counter = ofNullable(counterMap.get(leadingElement.getRegex()))
-                        .orElse(new NCFACounter(leadingElement.getRegex(), leadingElement.getMinCounter(), leadingElement.getMaxCounter()));
+                CFACounter counter = ofNullable(counterMap.get(leadingElement.getRegex()))
+                        .orElse(new CFACounter(leadingElement.getRegex(), leadingElement.getMinCounter(), leadingElement.getMaxCounter()));
                 counterMap.put(leadingElement.getRegex(), counter);
 
                 Set<PartialDerivation> incrDerivations = composeDerivations(calculateDerivation(c, leadingElement.getChildren(), derivationCache, counterMap),

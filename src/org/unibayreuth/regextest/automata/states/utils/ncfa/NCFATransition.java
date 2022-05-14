@@ -1,8 +1,9 @@
-package org.unibayreuth.regextest.automata.states.utils;
+package org.unibayreuth.regextest.automata.states.utils.ncfa;
 
 import org.unibayreuth.regextest.automata.states.NCFAState;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -29,5 +30,19 @@ public class NCFATransition {
 
     public void setTargetState(NCFAState targetState) {
         this.targetState = targetState;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NCFATransition that = (NCFATransition) o;
+        return operations.equals(that.operations) &&
+                targetState.equals(that.targetState);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(operations, targetState);
     }
 }

@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class NFAutomaton implements NondeterministicAutomaton<DFAutomaton> {
-    private Set<NFAState> startStates;
+    private final Set<NFAState> startStates;
 
     public NFAutomaton(Set<NFAState> startStates) {
         this.startStates = startStates;

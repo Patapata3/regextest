@@ -1,8 +1,8 @@
 package org.unibayreuth.regextest.compilers.utils.ncfa;
 
-import org.unibayreuth.regextest.automata.states.utils.NCFACounter;
-import org.unibayreuth.regextest.automata.states.utils.NCFAOpType;
-import org.unibayreuth.regextest.automata.states.utils.NCFAOperation;
+import org.unibayreuth.regextest.automata.states.utils.ncfa.CFACounter;
+import org.unibayreuth.regextest.automata.states.utils.ncfa.NCFAOpType;
+import org.unibayreuth.regextest.automata.states.utils.ncfa.NCFAOperation;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,7 +34,7 @@ public class PartialDerivation {
             return new PartialDerivation(operations.isEmpty() ? other.getOperations() : operations, newRemainder);
         }
 
-        Map<NCFACounter, NCFAOperation> otherOperationsMap = other.getOperations()
+        Map<CFACounter, NCFAOperation> otherOperationsMap = other.getOperations()
                 .stream()
                 .collect(Collectors.toMap(NCFAOperation::getCounter, operation -> operation));
         Set<NCFAOperation> unprocessedOperations = new HashSet<>(operations);
