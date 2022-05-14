@@ -1,7 +1,7 @@
 package org.unibayreuth.regextest.compilers.utils.nfa;
 
 import com.google.common.collect.Sets;
-import org.unibayreuth.regextest.automata.NFAutomaton;
+import org.unibayreuth.regextest.automata.nondeterministic.NFAutomaton;
 import org.unibayreuth.regextest.automata.states.NFAState;
 
 public class NFAWrapper {

@@ -1,5 +1,6 @@
-package org.unibayreuth.regextest.automata;
+package org.unibayreuth.regextest.automata.nondeterministic;
 
+import org.unibayreuth.regextest.automata.Automaton;
 import org.unibayreuth.regextest.automata.states.NCFAState;
 import org.unibayreuth.regextest.automata.states.utils.NCFACounter;
 import org.unibayreuth.regextest.automata.states.utils.NCFARunState;
@@ -34,7 +35,6 @@ public class NCFAutomaton implements Automaton {
                 return false;
             }
         }
-
 
         return activeStates.stream()
                 .anyMatch(NCFARunState::isAccept);

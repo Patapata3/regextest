@@ -2,7 +2,7 @@ package org.unibayreuth.regextest.compilers;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import org.unibayreuth.regextest.automata.NCFAutomaton;
+import org.unibayreuth.regextest.automata.nondeterministic.NCFAutomaton;
 import org.unibayreuth.regextest.automata.states.NCFAState;
 import org.unibayreuth.regextest.automata.states.utils.NCFACounter;
 import org.unibayreuth.regextest.automata.states.utils.NCFAOpType;
