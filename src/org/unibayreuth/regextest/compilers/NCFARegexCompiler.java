@@ -156,6 +156,9 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
 
     private RegexElement wrapCounter(RegexElement elementToWrap, int min, int max) {
         RegexElement counterElement = wrapPostfixOp(RegexElementType.COUNTER, elementToWrap);
+        if (elementToWrap.isNullable()) {
+            min = 0;
+        }
         counterElement.setMinCounter(min);
         counterElement.setMaxCounter(max);
         counterElement.setRegex(counterElement.getRegex() + String.format("{%d;%d}", min, max));

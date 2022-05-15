@@ -54,7 +54,7 @@ public class NCFAutomaton implements NondeterministicAutomaton<CSAutomaton> {
             }
         }
 
-        return new CSAutomaton(start);
+        return new CSAutomaton(start, counters);
     }
 
     private Map<CFACounter, Set<NCFAState>> calculateScope() {
@@ -76,13 +76,6 @@ public class NCFAutomaton implements NondeterministicAutomaton<CSAutomaton> {
 
     private Set<NCFAState> calculateStateScope(NCFAState state, Set<NCFAState> foundStates, Map<CFACounter, Set<NCFAState>> scopeMap) {
         Set<NCFAState> newStates = new HashSet<>();
-
-        for (Set<NCFAState> scope : scopeMap.values()) {
-            scope.addAll(state.getAllTransitions()
-                    .stream()
-                    .map(NCFATransition::getTargetState)
-                    .collect(Collectors.toSet()));
-        }
 
         for (NCFATransition transition : state.getAllTransitions()) {
             NCFAState target = transition.getTargetState();
@@ -152,10 +145,7 @@ public class NCFAutomaton implements NondeterministicAutomaton<CSAutomaton> {
                         .flatMap(guard -> convertGuard(guard).stream())
                         .collect(Collectors.toSet());
                 Set<SourceTransition> workingTransitions = transitions.stream()
-                        .filter(transition -> transition.getOperations()
-                                .stream()
-                                .allMatch(operation -> !scopeMap.get(operation.getCounter()).contains(transition.getSource()) ||
-                                        availableOperations.contains(operation)))
+                        .filter(transition -> availableOperations.containsAll(transition.getOperations()))
                         .collect(Collectors.toSet());
 
                 workingTransitions.addAll(commonTransitions);

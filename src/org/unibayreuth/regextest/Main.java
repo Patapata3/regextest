@@ -1,5 +1,6 @@
 package org.unibayreuth.regextest;
 
+import org.unibayreuth.regextest.automata.deterministic.CSAutomaton;
 import org.unibayreuth.regextest.automata.deterministic.DFAutomaton;
 import org.unibayreuth.regextest.automata.nondeterministic.NCFAutomaton;
 import org.unibayreuth.regextest.automata.nondeterministic.NFAutomaton;
@@ -18,8 +19,8 @@ public class Main {
             System.out.println("Enter your input: ");
             String input = scanner.nextLine();
 
-            NFARegexCompiler compiler = new NFARegexCompiler();
-            DFAutomaton automaton = compiler.compile(regex).determine();
+            NCFARegexCompiler compiler = new NCFARegexCompiler();
+            CSAutomaton automaton = compiler.compile(regex).determine();
 
             System.out.println(automaton.match(input));
         }

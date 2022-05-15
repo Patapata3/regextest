@@ -31,6 +31,14 @@ public class CSAState {
         transMap.get(c).add(transition);
     }
 
+    public Set<CSATransition> getTransitions(char c) {
+        return transMap.get(c);
+    }
+
+    public boolean hasTransition(char c) {
+        return transMap.containsKey(c);
+    }
+
     public Map<Character, Set<CSATransition>> getTransMap() {
         return transMap;
     }
