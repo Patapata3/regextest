@@ -21,10 +21,6 @@ import java.util.stream.Collectors;
 import static java.util.Optional.ofNullable;
 
 public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
-    private Map<Character, RegexElementType> postfixOpMap = Map.of(
-            '*', RegexElementType.STAR,
-            '+', RegexElementType.PLUS,
-            '?', RegexElementType.OPTIONAL);
 
     @Override
     public String getType() {
@@ -35,134 +31,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
     public NCFAutomaton compile(String regex) {
         Preconditions.checkNotNull(regex, "Regex cannot be null!");
         Preconditions.checkArgument(!regex.isEmpty(), "Regex cannot be empty!");
-        return compileAutomaton(parse(regex));
-    }
-
-    private RegexTree parse(String regex) {
-        RegexElement root = new RegexElement();
-        Stack<RegexElement> elementStack = new Stack<>();
-        Set<Character> alphabet = new HashSet<>();
-        elementStack.push(root);
-        boolean isEscape = false;
-        boolean isCounter = false;
-        int bracketsCount = 0;
-        StringBuilder counterString = new StringBuilder();
-
-        for (char c : regex.toCharArray()) {
-            if (c == '\\' && !isEscape) {
-                isEscape = true;
-                continue;
-            }
-
-            if (!isEscape && !isCounter) {
-                switch (c) {
-                    case '|':
-                        if (elementStack.peek().isReady()) {
-                            RegexElement newChild = elementStack.pop();
-                            elementStack.peek().addChild(newChild);
-                        }
-                        elementStack.peek().setAlternative(true);
-                        elementStack.peek().addSymbol(c);
-                        break;
-                    case '(':
-                        if (elementStack.peek().isReady()) {
-                            RegexElement newChild = elementStack.pop();
-                            elementStack.peek().addChild(newChild);
-                        }
-
-                        RegexElement child = new RegexElement();
-                        elementStack.push(child);
-                        elementStack.peek().addSymbol(c);
-                        bracketsCount++;
-                        break;
-                    case ')':
-                        if (bracketsCount == 0) {
-                            throw new IllegalArgumentException("Invalid regex: too many closing brackets");
-                        }
-                        RegexElement newChild = elementStack.pop();
-                        elementStack.peek().addChild(newChild);
-                        elementStack.peek().setReady(true);
-                        elementStack.peek().addSymbol(c);
-                        bracketsCount--;
-                        break;
-                    case '*':
-                    case '+':
-                    case '?':
-                        elementStack.push(wrapPostfixOp(postfixOpMap.get(c), elementStack.pop()));
-                        elementStack.peek().addSymbol(c);
-                        break;
-                    case '{':
-                        isCounter = true;
-                        break;
-                    default:
-                        handleSingleton(elementStack, c);
-                        alphabet.add(c);
-                }
-            } else if (isCounter && c == '}') {
-                handleCounter(elementStack, counterString.toString());
-                counterString.setLength(0);
-                isCounter = false;
-            } else if (isCounter) {
-                counterString.append(c);
-            } else {
-                handleSingleton(elementStack, c);
-                isEscape = false;
-                alphabet.add(c);
-            }
-        }
-
-        if (bracketsCount != 0) {
-            throw new IllegalArgumentException("Invalid regex: too many opening brackets");
-        }
-        RegexElement lastChild = elementStack.pop();
-        root.addChild(lastChild);
-        return new RegexTree(root, alphabet);
-    }
-
-    private void handleSingleton(Stack<RegexElement> elementStack, char c) {
-        if (elementStack.peek().isReady()) {
-            RegexElement newChild = elementStack.pop();
-            elementStack.peek().addChild(newChild);
-        }
-        elementStack.push(RegexElement.singleton(c));
-    }
-
-    private RegexElement wrapPostfixOp(RegexElementType opType, RegexElement elementToWrap) {
-        RegexElement wrapperElement = new RegexElement();
-        wrapperElement.addChild(elementToWrap);
-        wrapperElement.setType(opType);
-        wrapperElement.setReady(true);
-        return wrapperElement;
-    }
-
-    private void handleCounter(Stack<RegexElement> elementStack, String counterString) {
-        if (elementStack.peek().getType() == RegexElementType.STAR) {
-            return;
-        }
-
-        org.unibayreuth.regextest.compilers.utils.Counter counter = CompileUtils.parseCounter(counterString);
-        if (elementStack.peek().getType() == RegexElementType.OPTIONAL) {
-            elementStack.peek().setType(RegexElementType.COUNTER);
-            elementStack.peek().setMinCounter(0);
-            elementStack.peek().setMaxCounter(counter.getMax());
-
-            String regex = elementStack.peek().getRegex();
-            regex = regex.substring(0, regex.length() - 1) + String.format("{%d;%d}", 0, counter.getMax());
-            elementStack.peek().setRegex(regex);
-            return;
-        }
-        elementStack.push(wrapCounter(elementStack.pop(), counter.getMin(), counter.getMax()));
-    }
-
-    private RegexElement wrapCounter(RegexElement elementToWrap, int min, int max) {
-        RegexElement counterElement = wrapPostfixOp(RegexElementType.COUNTER, elementToWrap);
-        if (elementToWrap.isNullable()) {
-            min = 0;
-        }
-        counterElement.setMinCounter(min);
-        counterElement.setMaxCounter(max);
-        counterElement.setRegex(counterElement.getRegex() + String.format("{%d;%d}", min, max));
-        return counterElement;
+        return compileAutomaton(CompileUtils.parseRegexTree(regex));
     }
 
     private NCFAutomaton compileAutomaton(RegexTree tree) {

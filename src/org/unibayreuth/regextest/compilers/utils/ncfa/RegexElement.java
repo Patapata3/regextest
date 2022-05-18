@@ -14,6 +14,8 @@ public class RegexElement {
     private Integer minCounter;
     private boolean ready = false;
     private boolean isAlternative = false;
+    private boolean childrenNullable = false;
+    private boolean alternativesNullable = false;
 
     public RegexElement() {
     }
@@ -28,8 +30,10 @@ public class RegexElement {
 
     public void addChild(RegexElement childElement) {
         if (isAlternative) {
+            alternativesNullable = (alternativesNullable || alternatives.isEmpty()) && childElement.isNullable();
             alternatives.add(childElement);
         } else {
+            childrenNullable = (childrenNullable || children.isEmpty()) && childElement.isNullable();
             children.add(childElement);
         }
         regex += childElement.getRegex();
@@ -102,8 +106,7 @@ public class RegexElement {
     public boolean isNullable() {
         return regex.isEmpty() || Sets.newHashSet(RegexElementType.OPTIONAL, RegexElementType.STAR).contains(type)
                 || (type == RegexElementType.COUNTER && minCounter == 0)
-                || (type != RegexElementType.SINGLETON && children.stream().allMatch(RegexElement::isNullable))
-                || (!alternatives.isEmpty() && alternatives.stream().allMatch(RegexElement::isNullable));
+                || childrenNullable || alternativesNullable;
     }
 
     public void addSymbol(char c) {

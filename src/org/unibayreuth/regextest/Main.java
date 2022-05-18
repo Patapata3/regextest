@@ -1,11 +1,6 @@
 package org.unibayreuth.regextest;
 
-import org.unibayreuth.regextest.automata.deterministic.CSAutomaton;
-import org.unibayreuth.regextest.automata.deterministic.DFAutomaton;
-import org.unibayreuth.regextest.automata.nondeterministic.NCFAutomaton;
-import org.unibayreuth.regextest.automata.nondeterministic.NFAutomaton;
-import org.unibayreuth.regextest.compilers.NCFARegexCompiler;
-import org.unibayreuth.regextest.compilers.NFARegexCompiler;
+import org.unibayreuth.regextest.fastsquaring.RelationMatcher;
 
 import java.util.Scanner;
 
@@ -19,10 +14,10 @@ public class Main {
             System.out.println("Enter your input: ");
             String input = scanner.nextLine();
 
-            NCFARegexCompiler compiler = new NCFARegexCompiler();
-            CSAutomaton automaton = compiler.compile(regex).determine();
+//            NCFARegexCompiler compiler = new NCFARegexCompiler();
+//            CSAutomaton automaton = compiler.compile(regex).determine();
 
-            System.out.println(automaton.match(input));
+            System.out.println(new RelationMatcher().match(regex, input));
         }
     }
 }
