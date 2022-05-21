@@ -12,6 +12,7 @@ import java.util.*;
 public class RelationMatcher {
     private final Set<RegexElementType> kleeneElements = Sets.newHashSet(RegexElementType.STAR, RegexElementType.STAR);
 
+    public static final String TYPE = "relation";
 
     public boolean match(String regex, String input) {
         RegexTree parseTree = CompileUtils.parseRegexTree(regex);
@@ -105,7 +106,7 @@ public class RelationMatcher {
         Set<SubstringTuple> concatResult = new HashSet<>(baseRelation);
         for (int i = fromIdx; i <= toIdx; i++) {
             Set<SubstringTuple> joinRelation = join(concatResult, toConcat);
-            concatResult = Sets.union(concatResult, joinRelation);
+            concatResult = CompileUtils.setUnion(concatResult, joinRelation);
         }
 
         return concatResult;

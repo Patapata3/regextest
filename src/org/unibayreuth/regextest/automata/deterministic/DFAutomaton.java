@@ -4,6 +4,8 @@ import org.unibayreuth.regextest.automata.Automaton;
 import org.unibayreuth.regextest.automata.states.DFAState;
 
 public class DFAutomaton implements Automaton {
+    public static final String TYPE = "dfa";
+
     private DFAState startState;
 
     public DFAutomaton(DFAState startState) {

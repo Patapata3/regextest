@@ -39,6 +39,12 @@ public class CompileUtils {
         return new Counter(minCounter, maxCounter);
     }
 
+    public static <T> Set<T> setUnion(Set<T> first, Set<T> second) {
+        Set<T> result = new HashSet<>(first);
+        result.addAll(second);
+        return result;
+    }
+
     public static RegexTree parseRegexTree(String regex) {
         RegexElement root = new RegexElement();
         Stack<RegexElement> elementStack = new Stack<>();

@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class NCFAutomaton implements NondeterministicAutomaton<CSAutomaton> {
+    public static final String TYPE = "ncfa";
+
     private final NCFAState startState;
     private final Set<CFACounter> counters;
 

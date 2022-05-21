@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CSAutomaton implements Automaton {
+    public static final String TYPE = "csa";
+
     private CSAState startState;
     private Set<CFACounter> counters;
 

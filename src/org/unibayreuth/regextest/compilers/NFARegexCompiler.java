@@ -24,12 +24,6 @@ public class NFARegexCompiler implements RegexCompiler<NFAutomaton>{
             '?', this::optional
     ));
 
-
-    @Override
-    public String getType() {
-        return "nfa";
-    }
-
     @Override
     public NFAutomaton compile(String regex) {
         Preconditions.checkNotNull(regex, "Regex cannot be null!");

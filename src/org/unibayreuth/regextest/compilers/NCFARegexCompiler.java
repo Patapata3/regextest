@@ -21,12 +21,6 @@ import java.util.stream.Collectors;
 import static java.util.Optional.ofNullable;
 
 public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
-
-    @Override
-    public String getType() {
-        return "ncfa";
-    }
-
     @Override
     public NCFAutomaton compile(String regex) {
         Preconditions.checkNotNull(regex, "Regex cannot be null!");
@@ -111,7 +105,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
                 Set<PartialDerivation> composition = composeDerivations(calculateDerivation(c, leadingElement.getChildren(), derivationCache, counterMap),
                         Collections.singleton(new PartialDerivation(null, elementSequence)));
                 Set<PartialDerivation> remaining = calculateDerivation(c, sequenceTail, derivationCache, counterMap);
-                derivations = Sets.union(composition, remaining);
+                derivations = CompileUtils.setUnion(composition, remaining);
                 break;
             case PLUS:
                 RegexElement starElement = new RegexElement();
@@ -134,7 +128,7 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
                 Set<PartialDerivation> exitDerivations = composeDerivations(Collections.singleton(new PartialDerivation(Collections.singleton(new NCFAOperation(NCFAOpType.EXIT, counter)), new ArrayList<>())),
                         calculateDerivation(c, sequenceTail, derivationCache, counterMap));
 
-                derivations = Sets.union(incrDerivations, exitDerivations);
+                derivations = CompileUtils.setUnion(incrDerivations, exitDerivations);
                 break;
             default:
                 List<RegexElement> childSequence = new ArrayList<>(leadingElement.getChildren());
@@ -143,10 +137,10 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
                 if (leadingElement.isAlternative()) {
                     List<RegexElement> alternativeSequence = new ArrayList<>(leadingElement.getAlternatives());
                     alternativeSequence.addAll(sequenceTail);
-                    derivations = Sets.union(derivations, calculateDerivation(c, alternativeSequence, derivationCache, counterMap));
+                    derivations = CompileUtils.setUnion(derivations, calculateDerivation(c, alternativeSequence, derivationCache, counterMap));
                 }
                 if (leadingElement.getType() == RegexElementType.OPTIONAL) {
-                    derivations = Sets.union(derivations, calculateDerivation(c, sequenceTail, derivationCache, counterMap));
+                    derivations = CompileUtils.setUnion(derivations, calculateDerivation(c, sequenceTail, derivationCache, counterMap));
                 }
         }
 
