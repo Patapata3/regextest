@@ -8,9 +8,9 @@ import org.unibayreuth.regextest.automata.nondeterministic.NFAutomaton;
 import org.unibayreuth.regextest.compilers.NCFARegexCompiler;
 import org.unibayreuth.regextest.compilers.NFARegexCompiler;
 import org.unibayreuth.regextest.experiments.DeterministicRunner;
+import org.unibayreuth.regextest.experiments.ExperimentRunner;
 import org.unibayreuth.regextest.experiments.FastSquaringRunner;
 import org.unibayreuth.regextest.experiments.NonDeterministicRunner;
-import org.unibayreuth.regextest.experiments.utils.RunnerConstructor;
 import org.unibayreuth.regextest.fastsquaring.RelationMatcher;
 
 import java.math.RoundingMode;
@@ -18,9 +18,10 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 public class ExperimentCommandExecutor {
-    private Map<String, RunnerConstructor> runnerMap = Map.of(
+    private final Map<String, BiFunction<String, String, ? extends ExperimentRunner>> runnerMap = Map.of(
             NCFAutomaton.TYPE, (regex, input) -> new NonDeterministicRunner(new NCFARegexCompiler(), regex, input),
             NFAutomaton.TYPE, (regex, input) -> new NonDeterministicRunner(new NFARegexCompiler(), regex, input),
             DFAutomaton.TYPE, (regex, input) -> new DeterministicRunner(new NFARegexCompiler(), regex, input),

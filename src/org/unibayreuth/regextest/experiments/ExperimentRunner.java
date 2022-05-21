@@ -31,7 +31,7 @@ public abstract class ExperimentRunner {
             procedure.run();
             long finishTime = System.nanoTime();
             double resultMs = ((double) (finishTime - startTime)) / 1000000;
-            System.out.printf("Measure %d - %.5f%n", i, resultMs);
+            System.out.printf("%sMeasure %d - %.5f%n", i <= 100 ? "Warm-up " : "", i, resultMs);
             if (i >= 100) {
                 measures.add(resultMs);
             }
