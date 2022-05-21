@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="regextest:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/regextest_jar</output-path>
+    <root id="archive" name="regextest.jar">
+      <element id="module-output" name="regextest" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/collections/google-collections/1.0/google-collections-1.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
