@@ -26,13 +26,13 @@ public abstract class ExperimentRunner {
 
     protected double measure(int times, Runnable procedure) {
         List<Double> measures = new ArrayList<>();
-        for (int i = 0; i < 10 + times; i++) {
+        for (int i = 0; i < 100 + times; i++) {
             long startTime = System.nanoTime();
             procedure.run();
             long finishTime = System.nanoTime();
             double resultMs = ((double) (finishTime - startTime)) / 1000000;
             System.out.printf("Measure %d - %.5f%n", i, resultMs);
-            if (i >= 10) {
+            if (i >= 100) {
                 measures.add(resultMs);
             }
         }
