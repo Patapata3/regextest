@@ -4,7 +4,6 @@ import org.unibayreuth.regextest.automata.deterministic.DFAutomaton;
 import org.unibayreuth.regextest.automata.states.DFAState;
 import org.unibayreuth.regextest.automata.states.NFAState;
 import org.unibayreuth.regextest.automata.states.utils.nfa.EpsilonStateConfig;
-import org.unibayreuth.regextest.compilers.utils.CompileUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -63,16 +62,16 @@ public class NFAutomaton implements NondeterministicAutomaton<DFAutomaton> {
         Set<NFAState> foundStates = new HashSet<>(states);
         for (NFAState state : states) {
             if (!closureCache.containsKey(state)) {
-                closureCache.put(state, epsilonClosure(state, foundStates, closureCache));
+                closureCache.put(state, epsilonClosure(state, closureCache));
             }
             foundStates.addAll(closureCache.get(state));
         }
         return foundStates;
     }
 
-    private Set<NFAState> epsilonClosure(NFAState state, Set<NFAState> foundStates, Map<NFAState, Set<NFAState>> closureCache) {
+    private Set<NFAState> epsilonClosure(NFAState state, Map<NFAState, Set<NFAState>> closureCache) {
         Stack<EpsilonStateConfig> traversalStack = new Stack<>();
-        EpsilonStateConfig rootStateConfig = new EpsilonStateConfig(state, foundStates);
+        EpsilonStateConfig rootStateConfig = new EpsilonStateConfig(state);
         traversalStack.push(rootStateConfig);
 
         while (!traversalStack.isEmpty()) {
@@ -83,11 +82,9 @@ public class NFAutomaton implements NondeterministicAutomaton<DFAutomaton> {
 
             if (currentState.getEpsilonIterator().hasNext()) {
                 NFAState epsilonState = currentState.getEpsilonIterator().next();
-                if (!currentState.getFoundStates().contains(epsilonState)) {
-                    currentState.setProcessedChild(epsilonState);
-                    if (!closureCache.containsKey(epsilonState)) {
-                        traversalStack.push(new EpsilonStateConfig(epsilonState, currentState.getChildFoundStates()));
-                    }
+                currentState.setProcessedChild(epsilonState);
+                if (!closureCache.containsKey(epsilonState)) {
+                    traversalStack.push(new EpsilonStateConfig(epsilonState));
                 }
             } else {
                 closureCache.put(currentState.getState(), currentState.getClosure());
@@ -95,16 +92,6 @@ public class NFAutomaton implements NondeterministicAutomaton<DFAutomaton> {
             }
         }
         return rootStateConfig.getClosure();
-
-//        for (NFAState epsilonState : epsilonTransitions) {
-//            if (!foundStates.contains(epsilonState)) {
-//                if (!closureCache.containsKey(epsilonState)) {
-//                    closureCache.put(epsilonState, epsilonClosure(epsilonState, CompileUtils.setUnion(newStates, foundStates), closureCache));
-//                }
-//                newStates.addAll(closureCache.get(epsilonState));
-//            }
-//        }
-//        return newStates;
     }
 
     private Set<DFAState> calculateTransitions(DFAState state, Map<NFAState, Set<NFAState>> closureCache, Map<Set<NFAState>, DFAState> foundStatesMap) {

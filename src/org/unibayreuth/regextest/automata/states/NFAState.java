@@ -1,9 +1,6 @@
 package org.unibayreuth.regextest.automata.states;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class NFAState {
     private Map<Character, Set<NFAState>> transMap = new HashMap<>();
@@ -11,7 +8,7 @@ public class NFAState {
 
     public void addTransition(Character c, NFAState state) {
         if (!transMap.containsKey(c)) {
-            transMap.put(c, new HashSet<>());
+            transMap.put(c, new LinkedHashSet<>());
         }
         transMap.get(c).add(state);
     }

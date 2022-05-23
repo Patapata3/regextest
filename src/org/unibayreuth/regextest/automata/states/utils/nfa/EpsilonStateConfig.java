@@ -14,11 +14,9 @@ public class EpsilonStateConfig {
     private Iterator<NFAState> epsilonIterator;
     private Set<NFAState> epsilonTransitions;
     private Set<NFAState> closure;
-    private Set<NFAState> foundStates;
 
-    public EpsilonStateConfig(NFAState state, Set<NFAState> foundStates) {
+    public EpsilonStateConfig(NFAState state) {
         this.state = state;
-        this.foundStates = foundStates;
         epsilonIterator = state.getTransitions(null) == null ? Collections.emptyIterator() : state.getTransitions(null).iterator();
         epsilonTransitions = state.getTransitions(null) == null ? new HashSet<>() : state.getTransitions(null);
         closure = new HashSet<>(epsilonTransitions);
@@ -32,20 +30,12 @@ public class EpsilonStateConfig {
         return epsilonIterator;
     }
 
-    public Set<NFAState> getFoundStates() {
-        return foundStates;
-    }
-
     public Set<NFAState> getEpsilonTransitions() {
         return epsilonTransitions;
     }
 
     public Set<NFAState> getClosure() {
         return closure;
-    }
-
-    public Set<NFAState> getChildFoundStates() {
-        return CompileUtils.setUnion(closure, foundStates);
     }
 
     public NFAState getProcessedChild() {

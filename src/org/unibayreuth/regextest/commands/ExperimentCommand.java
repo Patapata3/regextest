@@ -20,7 +20,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 
-public class ExperimentCommandExecutor {
+public class ExperimentCommand implements Command<String> {
+    public static final String NAME = "eval";
+
     private final Map<String, BiFunction<String, String, ? extends ExperimentRunner>> runnerMap = Map.of(
             NCFAutomaton.TYPE, (regex, input) -> new NonDeterministicRunner(new NCFARegexCompiler(), regex, input),
             NFAutomaton.TYPE, (regex, input) -> new NonDeterministicRunner(new NFARegexCompiler(), regex, input),
@@ -38,6 +40,6 @@ public class ExperimentCommandExecutor {
         double result = runnerMap.get(automatonType).apply(regex, input).run(operations, times);
         DecimalFormat format = new DecimalFormat("#.#####");
         format.setRoundingMode(RoundingMode.HALF_UP);
-        return format.format(result);
+        return format.format(result) + " ms";
     }
 }
