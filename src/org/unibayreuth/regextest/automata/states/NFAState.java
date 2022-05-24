@@ -8,7 +8,7 @@ public class NFAState {
 
     public void addTransition(Character c, NFAState state) {
         if (!transMap.containsKey(c)) {
-            transMap.put(c, new LinkedHashSet<>());
+            transMap.put(c, new HashSet<>());
         }
         transMap.get(c).add(state);
     }
