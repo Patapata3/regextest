@@ -86,4 +86,18 @@ public class NCFARunState {
 
         return availableOperations;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NCFARunState that = (NCFARunState) o;
+        return state.equals(that.state) &&
+                counterValues.equals(that.counterValues);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(state, counterValues);
+    }
 }

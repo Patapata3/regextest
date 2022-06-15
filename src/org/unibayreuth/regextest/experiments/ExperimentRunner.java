@@ -38,11 +38,12 @@ public abstract class ExperimentRunner {
         }
 
         measures.sort(Double::compareTo);
-        double sum = measures.subList(2, measures.size() - 2)
-                .stream()
+
+        measures = measures.subList(times / 10, measures.size() - (times / 10));
+        double sum = measures.stream()
                 .mapToDouble(Double::doubleValue)
                 .sum();
 
-        return sum / (measures.size() - 4);
+        return sum / measures.size();
     }
 }
