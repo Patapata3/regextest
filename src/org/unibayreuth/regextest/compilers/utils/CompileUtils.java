@@ -69,6 +69,7 @@ public class CompileUtils {
                             elementStack.peek().addChild(newChild);
                         }
                         elementStack.peek().setAlternative(true);
+                        elementStack.peek().newAlternative();
                         elementStack.peek().addSymbol(c);
                         break;
                     case '(':

@@ -89,8 +89,10 @@ public class RelationMatcher {
 
         Set<SubstringTuple> resultRelation = concatChildren(input, element.getChildren(), relationCache);
         if (element.isAlternative()) {
-            Set<SubstringTuple> alternativeRelation = concatChildren(input, element.getAlternatives(), relationCache);
-            resultRelation.addAll(alternativeRelation);
+            for (List<RegexElement> alternativeSequence : element.getAlternatives()) {
+                Set<SubstringTuple> alternativeRelation = concatChildren(input, alternativeSequence, relationCache);
+                resultRelation.addAll(alternativeRelation);
+            }
         }
         relationCache.put(elementRegex, resultRelation);
 
@@ -113,13 +115,13 @@ public class RelationMatcher {
     }
 
     private Set<SubstringTuple> fastSquare(Set<SubstringTuple> toConcat, int fromIdx, int toIdx) {
-        if (fromIdx < toIdx) {
+        if (fromIdx > toIdx) {
             return toConcat;
         }
 
         Map<Integer, Set<SubstringTuple>> calculatedPowers = new HashMap<>();
         calculatedPowers.put(1, toConcat);
-        int power = fromIdx - toIdx + 2;
+        int power = toIdx - fromIdx + 2;
 
         int calculatedPower;
         for (calculatedPower = 2; calculatedPower <= power; calculatedPower *= 2) {

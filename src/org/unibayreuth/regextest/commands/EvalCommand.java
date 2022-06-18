@@ -1,6 +1,5 @@
 package org.unibayreuth.regextest.commands;
 
-import com.google.common.collect.Sets;
 import org.unibayreuth.regextest.automata.deterministic.CSAutomaton;
 import org.unibayreuth.regextest.automata.deterministic.DFAutomaton;
 import org.unibayreuth.regextest.automata.nondeterministic.NCFAutomaton;
@@ -17,10 +16,9 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiFunction;
 
-public class ExperimentCommand implements Command<String> {
+public class EvalCommand implements Command<String> {
     public static final String NAME = "eval";
 
     private final Map<String, BiFunction<String, String, ? extends ExperimentRunner>> runnerMap = Map.of(

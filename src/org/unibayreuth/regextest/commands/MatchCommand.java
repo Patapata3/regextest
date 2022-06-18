@@ -29,7 +29,7 @@ public class MatchCommand implements Command<Boolean> {
     @Override
     public Boolean execute(String[] args) {
         String algorithm = args[1];
-        if (algorithm.toLowerCase().equals(RelationMatcher.TYPE)) {
+        if (algorithm.equalsIgnoreCase(RelationMatcher.TYPE)) {
             return new RelationMatcher().match(args[2], args[3]);
         }
 

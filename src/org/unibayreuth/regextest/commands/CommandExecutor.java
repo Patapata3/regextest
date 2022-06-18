@@ -5,7 +5,8 @@ import java.util.Map;
 public class CommandExecutor {
     private Map<String, Command<?>> commandMap = Map.of(
             MatchCommand.NAME, new MatchCommand(),
-            ExperimentCommand.NAME, new ExperimentCommand()
+            EvalCommand.NAME, new EvalCommand(),
+            CsaTestCommand.NAME, new CsaTestCommand()
     );
 
     public void execute(String[] args) {

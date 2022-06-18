@@ -8,5 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="com.google.collections:google-collections:1.0" level="project" />
+    <orderEntry type="library" name="apache.poi" level="project" />
+    <orderEntry type="library" name="apache.poi.ooxml" level="project" />
   </component>
 </module>

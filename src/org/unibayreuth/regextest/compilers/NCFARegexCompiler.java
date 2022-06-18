@@ -135,9 +135,11 @@ public class NCFARegexCompiler implements RegexCompiler<NCFAutomaton> {
                 childSequence.addAll(sequenceTail);
                 derivations = calculateDerivation(c, childSequence, derivationCache, counterMap);
                 if (leadingElement.isAlternative()) {
-                    List<RegexElement> alternativeSequence = new ArrayList<>(leadingElement.getAlternatives());
-                    alternativeSequence.addAll(sequenceTail);
-                    derivations = CompileUtils.setUnion(derivations, calculateDerivation(c, alternativeSequence, derivationCache, counterMap));
+                    for (List<RegexElement> alternativeSequence : leadingElement.getAlternatives()) {
+                        alternativeSequence = new ArrayList<>(alternativeSequence);
+                        alternativeSequence.addAll(sequenceTail);
+                        derivations = CompileUtils.setUnion(derivations, calculateDerivation(c, alternativeSequence, derivationCache, counterMap));
+                    }
                 }
                 if (leadingElement.getType() == RegexElementType.OPTIONAL) {
                     derivations = CompileUtils.setUnion(derivations, calculateDerivation(c, sequenceTail, derivationCache, counterMap));

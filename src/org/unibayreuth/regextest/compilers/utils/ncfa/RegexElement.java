@@ -4,12 +4,13 @@ import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class RegexElement {
     private RegexElementType type = RegexElementType.DEFAULT;
     private String regex = "";
     private List<RegexElement> children = new ArrayList<>();
-    private List<RegexElement> alternatives = new ArrayList<>();
+    private List<List<RegexElement>> alternatives = new ArrayList<>();
     private Integer maxCounter;
     private Integer minCounter;
     private boolean ready = false;
@@ -30,13 +31,21 @@ public class RegexElement {
 
     public void addChild(RegexElement childElement) {
         if (isAlternative) {
-            alternativesNullable = (alternativesNullable || alternatives.isEmpty()) && childElement.isNullable();
-            alternatives.add(childElement);
+            if (alternatives.isEmpty()) {
+                alternatives.add(new ArrayList<>());
+            }
+            List<RegexElement> lastAlternative = alternatives.get(alternatives.size() - 1);
+            alternativesNullable = (alternativesNullable || lastAlternative.isEmpty()) && childElement.isNullable();
+            lastAlternative.add(childElement);
         } else {
             childrenNullable = (childrenNullable || children.isEmpty()) && childElement.isNullable();
             children.add(childElement);
         }
         regex += childElement.getRegex();
+    }
+
+    public void newAlternative() {
+        alternatives.add(new ArrayList<>());
     }
 
     public RegexElementType getType() {
@@ -63,12 +72,8 @@ public class RegexElement {
         this.children = children;
     }
 
-    public List<RegexElement> getAlternatives() {
+    public List<List<RegexElement>> getAlternatives() {
         return alternatives;
-    }
-
-    public void setAlternatives(List<RegexElement> alternatives) {
-        this.alternatives = alternatives;
     }
 
     public Integer getMaxCounter() {
